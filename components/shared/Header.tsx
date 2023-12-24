@@ -9,7 +9,7 @@ const Header = () => {
     <header className="w-full border-b">
       <div className="wrapper flex items-center justify-between">
         <Link href="/" className="w-34">
-            <Image src="/assets/images/logo.svg" width={128} height={38}
+            <Image src="/assets/images/event-scape.svg" width={128} height={38}
                  alt="eventscape logo"/>
         </Link>
         <SignedIn>

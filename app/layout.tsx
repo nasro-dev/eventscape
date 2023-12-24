@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Eventscape',
   description: 'Eventscape is a platform for event management',
   icons: {
-    icon: "/assets/images/eventscape-logo.svg"
+    icon: "/assets/icons/logo.svg"
   }
 }
 
