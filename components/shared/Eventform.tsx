@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import {
     Form,
     FormControl,
@@ -18,6 +19,8 @@ import { eventformSchema } from "@/lib/validator"
 import * as z from "zod"
 import { eventDefaultValues } from "@/constants"
 import Dropdown from "./Dropdown"
+import Fileuploader from "./Fileuploader"
+import { useState } from "react"
 
 type EventformProps = {
     userId: string
@@ -33,6 +36,7 @@ const Eventform = ({ userId, type }: EventformProps ) => {
     function onSubmit(values: z.infer<typeof eventformSchema>){
         console.log(values)
     }
+    const [files, setfiles] = useState<File[]>([])
   return (
     <Form {...eventform}>
         <form onSubmit={eventform.handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -62,7 +66,39 @@ const Eventform = ({ userId, type }: EventformProps ) => {
                     )}
                 />
             </div>
-            <Button type="submit">Submit</Button>
+            <div className="flex flex-col gap-5 md:flex-row">
+                <FormField
+                        control={eventform.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem className="w-full ">
+                                <FormControl className="h-52">
+                                <Textarea placeholder="Description" {...field} className="textarea rounded-2xl"/>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />         
+            </div>
+            <div className="flex flex-col gap-5 md:flex-row">
+                <FormField
+                        control={eventform.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                            <FormItem className="w-full ">
+                                <FormControl className="h-52">
+                                    <Fileuploader 
+                                       onFieldChange={field.onChange}
+                                       imageUrl={field.value}
+                                       setFiles={setfiles}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />   
+            </div>
+            <Button type="submit" className="bg-custom text-black hover:bg-black hover:text-white">Submit</Button>
         </form>
     </Form>
   )
