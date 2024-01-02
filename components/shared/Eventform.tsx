@@ -13,6 +13,9 @@ import {
     FormLabel,
     FormMessage,
 }  from "@/components/ui/form"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
+import { Checkbox } from "@/components/ui/checkbox"
 
 import { Input } from "@/components/ui/input"
 import { eventformSchema } from "@/lib/validator"
@@ -22,7 +25,9 @@ import Dropdown from "./Dropdown"
 import { FileUploader } from "./Fileuploader"
 import { useState } from "react"
 import Image from "next/image"
-
+import { useUploadThing } from '@/lib/uploadthing'
+import { useRouter } from "next/navigation"
+import { createEvent } from "@/lib/mongodb/actions/event.actions"
 type EventformProps = {
     userId: string
     type: "Create" | "Update"
@@ -34,10 +39,39 @@ const Eventform = ({ userId, type }: EventformProps ) => {
         resolver: zodResolver(eventformSchema),
         defaultValues: initialValues
     })
-    function onSubmit(values: z.infer<typeof eventformSchema>){
-        console.log(values)
+    const router  = useRouter()
+    const { startUpload } = useUploadThing('imageUploader')
+    async function onSubmit(values: z.infer<typeof eventformSchema>){
+        {/*form submit function*/}
+        const eventData = values
+        let uploadImageUrl = values.imageUrl;
+        if (files.length > 0){
+            const uploadedImages = await startUpload(files)
+            if(!uploadedImages){
+                return
+            }
+            uploadImageUrl = uploadedImages[0].url
+        }
+
+        if(type == 'Create'){
+            try {
+                const newEvent = createEvent({
+                    event: { ...values, imageUrl: uploadImageUrl},
+                    userId,
+                    path: '/profile'
+                })
+
+                if(newEvent){
+                    eventform.reset()
+                    router.push(`/events/$(newEvent._id`)
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
     }
     const [files, setfiles] = useState<File[]>([])
+
   return (
     <Form {...eventform}>
         <form onSubmit={eventform.handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -139,7 +173,40 @@ const Eventform = ({ userId, type }: EventformProps ) => {
                                           className="filter-gray"
                                         />
                                         <p className="ml-3 whitespace-nowrap text-gray-600">Event start date:</p>
-                                        {/* TODO: add date picker object*/}
+                                        <DatePicker selected={field.value} 
+                                        onChange={(date: Date) => field.onChange(date)}
+                                        showTimeSelect
+                                        timeInputLabel="Time:"
+                                        dateFormat="MM/dd/yyyy h:mm aa"
+                                        wrapperClassName="datePicker" />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                <FormField
+                        control={eventform.control}
+                        name="endDateTime"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <div className="flex-center h-[54px] w-full 
+                                      overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                                        <Image
+                                          src="/assets/icons/calendar.svg"
+                                          alt="calendar"
+                                          width={24}
+                                          height={24}
+                                          className="filter-gray"
+                                        />
+                                        <p className="ml-3 whitespace-nowrap text-gray-600">Event end date:</p>
+                                        <DatePicker selected={field.value} 
+                                        onChange={(date: Date) => field.onChange(date)}
+                                        showTimeSelect
+                                        timeInputLabel="Time:"
+                                        dateFormat="MM/dd/yyyy h:mm aa"
+                                        wrapperClassName="datePicker" />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -147,7 +214,73 @@ const Eventform = ({ userId, type }: EventformProps ) => {
                         )}
                     />
             </div>
-            <Button type="submit" className="bg-custom text-black hover:bg-black hover:text-white">Create New Event</Button>
+            <div className="flex flex-col gap-5 md:flex-row">
+            <FormField
+                        control={eventform.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <div className="flex-center h-[54px] w-full 
+                                      overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                                        <Image
+                                          src="/assets/icons/dollar.svg"
+                                          alt="dollar"
+                                          width={24}
+                                          height={24}
+                                          className="filter-gray"
+                                        />
+                                        <Input type="number" placeholder="Price" {...field} 
+                                        className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                                        <FormField
+                                            control={eventform.control}
+                                            name="isfree"
+                                            render={({ field }) => (
+                                                <FormItem >
+                                                    <FormControl>
+                                                        <div className="flex items-center">
+                                                            <label htmlFor="isfree" className="whitespace-nowrap pr-3 leading-none 
+                                                            peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Free Ticket</label>
+                                                            <Checkbox id="isfree" onCheckedChange={field.onChange} checked={field.value} 
+                                                             className="mr-2 h-5 w-5 border-2 border-custom hover:border-black"  />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />        
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={eventform.control}
+                        name="url"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <div className="flex-center h-[54px] w-full 
+                                      overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                                        <Image
+                                          src="/assets/icons/link.svg"
+                                          alt="link"
+                                          width={24}
+                                          height={24}
+                                        />
+                                        <Input placeholder="URL" {...field} className="input-field"/>
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+            </div>
+            <Button type="submit" size="lg" disabled={eventform.formState.isSubmitting} 
+            className="button col-span-2 w-full bg-custom text-black hover:bg-black hover:text-white">
+                {eventform.formState.isSubmitting ? ('Submitting...'):`${type} Event`} 
+                </Button>
         </form>
     </Form>
   )
