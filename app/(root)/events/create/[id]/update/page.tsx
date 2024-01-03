@@ -1,11 +1,20 @@
 import Eventform from '@/components/shared/Eventform'
+import { getEventById } from '@/lib/mongodb/actions/event.actions';
+import { UpdateEventParams } from '@/types';
 import { auth } from '@clerk/nextjs';
 import React from 'react'
 
-const UpdateEvent = () => {
-  const { sessionClaims } = auth();  
+type UpdateEventProps = {
+  params: {
+    id: string
+  }
+}
+const UpdateEvent = async ({ params: {id}}: UpdateEventProps) => {
+  
+  const event = await getEventById(id)
+  const { sessionClaims } = auth()
 
-  const userId = sessionClaims?.userId as string;
+  const userId = sessionClaims?.userId as string
 
   return (
     <>
@@ -15,7 +24,7 @@ const UpdateEvent = () => {
         </h1>
       </section>
       <div className='wrapper my-8'>
-        <Eventform userId={userId} type="Update" />
+        <Eventform type="Update" userId={userId} event={event} eventId={event._id}/>
       </div>
     </>
     

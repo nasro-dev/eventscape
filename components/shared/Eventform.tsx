@@ -27,18 +27,26 @@ import { useState } from "react"
 import Image from "next/image"
 import { useUploadThing } from '@/lib/uploadthing'
 import { useRouter } from "next/navigation"
-import { createEvent } from "@/lib/mongodb/actions/event.actions"
+import { createEvent, updateEvent } from "@/lib/mongodb/actions/event.actions"
+import { IEvent } from "@/lib/mongodb/models/event.model"
 type EventformProps = {
     userId: string
     type: "Create" | "Update"
+    event?: IEvent
+    eventId?: string
 }
 
-const Eventform = ({ userId, type }: EventformProps ) => {
-    const initialValues = eventDefaultValues
+const Eventform = ({ userId, type ,event , eventId}: EventformProps ) => {
+    const initialValues = event && type === 'Update' ? 
+    {...event, 
+    startDateTime: new Date(event.startDateTime),
+    endDateTime: new Date(event.endDateTime)}:eventDefaultValues
+
     const eventform = useForm<z.infer<typeof eventformSchema>>({
         resolver: zodResolver(eventformSchema),
         defaultValues: initialValues
     })
+
     const router  = useRouter()
     const { startUpload } = useUploadThing('imageUploader')
     async function onSubmit(values: z.infer<typeof eventformSchema>){
@@ -52,7 +60,7 @@ const Eventform = ({ userId, type }: EventformProps ) => {
             }
             uploadImageUrl = uploadedImages[0].url
         }
-
+        //Create
         if(type == 'Create'){
             try {
                 const newEvent = createEvent({
@@ -63,7 +71,29 @@ const Eventform = ({ userId, type }: EventformProps ) => {
 
                 if(newEvent){
                     eventform.reset()
-                    router.push(`/events/$(newEvent._id`)
+                    router.push(`/events/${newEvent._id}`)
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        //Update
+        if(type == 'Update'){
+            if(!eventId){
+                router.back()
+                return
+            }
+            try {
+                const updatedEvent = await updateEvent({
+                    event: { ...values, imageUrl: uploadImageUrl ,_id},
+                    userId,
+                    eventId,
+                    path: `/events/${eventId}`
+                })
+
+                if(updatedEvent){
+                    eventform.reset()
+                    router.push(`/events/${updatedEvent._id}`)
                 }
             } catch (error) {
                 console.log(error)
