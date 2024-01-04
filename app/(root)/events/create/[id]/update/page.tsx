@@ -1,6 +1,5 @@
 import Eventform from '@/components/shared/Eventform'
 import { getEventById } from '@/lib/mongodb/actions/event.actions';
-import { UpdateEventParams } from '@/types';
 import { auth } from '@clerk/nextjs';
 import React from 'react'
 

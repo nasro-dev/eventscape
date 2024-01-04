@@ -1,3 +1,4 @@
+import CheckoutButton from '@/components/shared/CheckoutButton'
 import Collection from '@/components/shared/Collection'
 import { getEventById, getRelatedEventsByCategory } from '@/lib/mongodb/actions/event.actions'
 import { formatDateTime } from '@/lib/utils'
@@ -42,6 +43,8 @@ const EventDetails = async({ params: {id}, searchParams}: SearchParamProps) => {
                         </p>
                     </div>
                 </div>
+
+                <CheckoutButton event={event}/>
                 <div className='flex flex-col gap-5'>
                     <div className="flex gap-2 md:gap-3">
                           <Image 
@@ -91,9 +94,9 @@ const EventDetails = async({ params: {id}, searchParams}: SearchParamProps) => {
            emptyTitle="No Events Found"
            emptyStateSubtext="Come Back Later"
            collectionType="All_Events"
-           limit={6}
-           page={1}
-           totalPages={2}
+           limit={3}
+           page={searchParams.page as string}
+           totalPages={relatedEvents?.totalPages}
         />
 
     </section>
